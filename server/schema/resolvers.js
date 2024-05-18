@@ -42,26 +42,46 @@ const resolvers ={
                 return { token, user };
             },
             saveBook: async(parent, {authors, description, bookId, image, link, title}) => {
-                console.log(user);
+                // Get the user from the context
+                const user = context.user;
+              
+                if (!user) {
+                  throw new Error('Authentication error');
+                }
+              
                 try {
-                    const updatedUser = await User.findOneAndUpdate(
-                      { _id: user._id },
-                      { $addToSet: { savedBooks: body } },
-                      { new: true, runValidators: true }
-                    );
-                    return res.json(updatedUser);
-                  } catch (err) {
-                    console.log(err);
-                    return res.status(400).json(err);
-                  }
-            },
-            removeBook: async(parent, {bookId}) => {
-                const updatedUser = await User.findOneAndUpdate(
+                  const updatedUser = await User.findOneAndUpdate(
                     { _id: user._id },
-                    { $pull: { savedBooks: { bookId } } },
-                    { new: true }
+                    { $addToSet: { savedBooks: {authors, description, bookId, image, link, title} } },
+                    { new: true, runValidators: true }
                   );
-                  return res.json(updatedUser);
+              
+                  return updatedUser;
+                } catch (err) {
+                  console.error(err);
+                  throw new Error('Error saving book');
+                }
+              },
+            removeBook: async(parent, {bookId}) => {
+                if (!user) {
+                    throw new Error('Authentication error');
+                  }
+                    try {
+                        const updatedUser = await User.findOneAndUpdate(
+                            { _id: user._id },
+                            { $pull: { savedBooks: { bookId } } },
+                            { new: true }
+                          );
+                      
+                          if (!updatedUser) {
+                            throw new Error('No user found with this id');
+                          }
+                      
+                          return updatedUser;
+                        } catch (err) {
+                          console.error(err);
+                          throw new Error('Error removing book');
+                    }
             }
         }
     }
