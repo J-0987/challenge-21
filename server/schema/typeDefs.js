@@ -23,8 +23,7 @@ type Book {
     }
 
     type Query {
-        book: [Book] 
-        user: [User]
+        users: [User]
         me: User
     }
 

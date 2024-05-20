@@ -1,47 +1,63 @@
-const { Book, User } = require('../models');
+
+const Book = require('../models/Book');
+const User = require('../models/User');
+const { signToken, AuthenticationError } = require('../utils/auth');
+
 
 const resolvers = {
 
   Query: {
-    book: async () => {
-      return Book.find();
-
+    
+    me: async (parent, args, context) => {
+      if (context.user) {
+        return User.findOne({ _id: context.user._id }).populate('thoughts');
+      }
+      throw AuthenticationError;
     },
 
-    user: async () => {
-      return User.find();
+  
 
-    },
-    me: async () => {
-
-
+    // user: {
+    //   books: async (parent) => {
+    //     // parent is the User document
+    //     // return the savedBooks field
+    //     return parent.savedBooks;
+    //   },
+    // },
+    users: async () => {
+      // Fetch all users from the database
+      const users = await User.find();
+      return users;
     },
   },
 
   Mutation: {
-      login: async (parent, { username, email, password }) => {
-        const user = await User.findOne({ $or: [{ username }, { email }] });
-        if (!user) {
-          return res.status(400).json({ message: "Can't find this user" });
-        }
+    login: async (parent, { email, password }) => {
+      const user = await User.findOne({ email });
 
-        const correctPw = await user.isCorrectPassword(password);
+      if (!user) {
+        throw AuthenticationError;
+      }
 
-        if (!correctPw) {
-          return res.status(400).json({ message: 'Wrong password!' });
-        }
-        const token = signToken(user);
-        return { token, user };
-      },
+      const correctPw = await user.isCorrectPassword(password);
+
+      if (!correctPw) {
+        throw AuthenticationError;
+      }
+
+      const token = signToken(user);
+
+      return { token, user };
+    },
+
+
       createUser: async (parent, { username, email, password }) => {
         const user = await User.create({ username, email, password });
-
-        if (!user) {
-          return res.status(400).json({ message: 'Something is wrong!' });
-        }
         const token = signToken(user);
         return { token, user };
       },
+
+
       saveBook: async (parent, { authors, description, bookId, image, link, title }, context) => {
         // Get the user from the context
         const user = context.user;
