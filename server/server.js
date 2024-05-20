@@ -8,6 +8,7 @@ const { authMiddleware } = require('./utils/auth');
 const { typeDefs, resolvers } = require('./schema');
 const db = require('./config/connection');
 
+const cors = require('cors');
 
 
 
@@ -18,6 +19,9 @@ const server = new ApolloServer({
   resolvers,
 
 });
+
+// Enable CORS for all routes
+// app.use(cors());
 
 const startApolloServer = async () => {
   await server.start();
