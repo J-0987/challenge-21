@@ -33,7 +33,7 @@ export const QUERY_USER = gql`
   }
 `;
 
-export const QUERY_ME = gql`
+export const GET_ME = gql`
   query me {
     me {
      _id
