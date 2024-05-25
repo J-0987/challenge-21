@@ -8,7 +8,7 @@ const { authMiddleware } = require('./utils/auth');
 const { typeDefs, resolvers } = require('./schema');
 const db = require('./config/connection');
 
-const cors = require('cors');
+// const cors = require('cors');
 
 
 
