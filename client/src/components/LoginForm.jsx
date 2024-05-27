@@ -16,6 +16,7 @@ const LoginForm = () => {
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setUserFormData({ ...userFormData, [name]: value });
+    console.log("DEBUG USER")
   };
 
 
@@ -33,7 +34,7 @@ const LoginForm = () => {
       const { data } = await loginUser({
         variables: { ...userFormData },
       });
-
+      console.log(data.login.token)
       Auth.login(data.login.token);
     } 
     catch (err) {
