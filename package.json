@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "apollo-server": "^3.13.0",
-    "apollo-server-express": "^3.13.0"
+    "apollo-server-express": "^3.13.0",
+    "mongodb": "^6.6.2"
   }
 }

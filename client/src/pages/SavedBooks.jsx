@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@apollo/client';
 import {
   Container,
   Card,
@@ -11,37 +12,46 @@ import {useMutation} from '@apollo/client';
 import {GET_ME} from '../utils/queries';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
+import { REMOVE_BOOK } from '../utils/mutations';
 
 const SavedBooks = () => {
+
   const [userData, setUserData] = useState({});
 
   // use this to determine if `useEffect()` hook needs to run again
-  const userDataLength = Object.keys(userData).length;
+  console.log("logged in", Auth.loggedIn())
+  console.log("token", Auth.getToken())
+  const userDataLength = Object.keys(userData);
+  console.log("HELLO userdata", userData)
+  const { loading, data, queryError } = useQuery(GET_ME, {
+    context: {
+      headers: {
+        authorization: Auth.loggedIn() ? `Bearer ${Auth.getToken()}` : ''
+      },
 
+    }
+
+    
+  });
+
+  // console.log('Loading:', loading);
+  // console.log('Error:', queryError );
+  // console.log('Data:', data);
+  // console.log("HELLO DATA", data)
+ 
   useEffect(() => {
-    const getUserData = async () => {
-      try {
-        const token = Auth.loggedIn() ? Auth.getToken() : null;
 
-        if (!token) {
-          return false;
-        }
-
-        const response = await getMe(token);
-
-        if (!response.ok) {
-          throw new Error('something went wrong!');
-        }
-
-        const user = await response.json();
-        setUserData(user);
-      } catch (err) {
-        console.error(err);
+    if (!loading) {
+      if (data) {
+        console.log("RESPONSE", data.me);
+        setUserData(data.me);
+      } else if (queryError) {
+        console.log("useEffect error",queryError);
       }
-    };
+    }
+    
+  }, [loading, data, queryError]);
 
-    getUserData();
-  }, [userDataLength]);
 
   const [removeBook, { error }] = useMutation(REMOVE_BOOK);
 
@@ -50,8 +60,10 @@ const SavedBooks = () => {
   const token = Auth.loggedIn() ? Auth.getToken() : null;
 
   if (!token) {
+ 
     return false;
   }
+  
 
   try {
     const { data } = await removeBook({
@@ -74,6 +86,19 @@ const SavedBooks = () => {
     console.error(err);
   }
 };
+if (loading) {
+  return <div>Loading...</div>;
+}
+
+if (error) {
+  console.error("Error:", error);
+  return <div>Error!</div>;
+}
+
+if (!data?.me?.savedBooks) {
+  return <div>No saved books!</div>;
+}
+
   return (
     <>
       <div fluid className="text-light bg-dark p-5">
@@ -82,13 +107,9 @@ const SavedBooks = () => {
         </Container>
       </div>
       <Container>
-        <h2 className='pt-5'>
-          {userData.savedBooks.length
-            ? `Viewing ${userData.savedBooks.length} saved ${userData.savedBooks.length === 1 ? 'book' : 'books'}:`
-            : 'You have no saved books!'}
-        </h2>
+     
         <Row>
-          {userData.savedBooks.map((book) => {
+          {data.me.savedBooks.map((book) => {
             return (
               <Col md="4" key={book.bookId} >
                 <Card border='dark'>
@@ -112,3 +133,12 @@ const SavedBooks = () => {
 };
 
 export default SavedBooks;
+
+/*
+ <h2 className='pt-5'>
+          {userData.savedBooks.length
+            ? `Viewing ${userData.savedBooks.length} saved ${userData.savedBooks.length === 1 ? 'book' : 'books'}:`
+            : 'You have no saved books!'}
+            {console.log("BOOKDATA", userData)}
+        </h2>
+*/

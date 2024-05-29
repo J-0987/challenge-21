@@ -56,14 +56,16 @@ const resolvers = {
     },
 
 
-    saveBook: async (parent, { BookInput }, context) => {
+    saveBook: async (parent, { bookInput }, context) => {
       // Get the user from the context
       const user = context.user;
-      if (context.user) {
+      console.log ("JASMINE", user)
+      console.log("bookinput", bookInput)
+      if (user) {
         return User.findByIdAndUpdate(
           context.user._id,
 
-          { $addToSet: { savedBooks: { BookInput } } },
+          { $addToSet: { savedBooks: { ...bookInput } } },
           { new: true, runValidators: true }
         );
       }
